@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { RandomDogApp } from './components/A'
+import { RandomDogApp as RandomDogAppExtended } from './components/A2'
+import { QuoteOfTheDay } from './components/QuoteOfTheDay'
 import * as fromCrank from './recrank'
 import { AsyncComponent } from './recrank/async'
 import { StatefulComponent } from './recrank/stateful'
@@ -7,15 +8,13 @@ import './styles.css'
 import { sleep } from './utils'
 
 export default function App() {
-  const [escape, setEscape] = React.useState(false)
-  if (escape) return null
   return (
     <div style={{ display: 'grid' }}>
-      {/* <Timer_StatefulComponentFromCrank />
-      <Timeout_AsyncComponentFromCrank />
-      <QuoteOfTheDay /> */}
-      <RandomDogApp />
-      <button onClick={() => setEscape(true)}>escape</button>
+      <TimerStatefulComponentFromCrank />
+      <TimeoutAsyncComponentFromCrank />
+      <QuoteOfTheDay />
+      {/* <RandomDogApp /> */}
+      <RandomDogAppExtended />
     </div>
   )
 }
@@ -39,11 +38,11 @@ const Timer: StatefulComponent<{ count?: number }> = function* Timer(
   }
 }
 
-const Timer_StatefulComponentFromCrank = fromCrank.stateful(Timer)
+const TimerStatefulComponentFromCrank = fromCrank.stateful(Timer)
 
 const Timeout: AsyncComponent<{}> = async function Timeout(props) {
   await sleep(1000)
   return <span>+1s</span>
 }
 
-const Timeout_AsyncComponentFromCrank = fromCrank.async(Timeout)
+const TimeoutAsyncComponentFromCrank = fromCrank.async(Timeout)

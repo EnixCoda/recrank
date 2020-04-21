@@ -1,15 +1,16 @@
 import * as React from 'react'
+import { useNextTick } from './useNextTick'
 
 type ExtendedStatefulContext<P> = {
   refresh(): void
-  [Symbol.iterator](): AsyncGenerator<P>
   emitAsync<T>(p: Promise<T>): Promise<T>
+  [Symbol.asyncIterator](): AsyncGenerator<P>
 }
 
 export type ExtendedAsyncStatefulComponent<P> = (
   this: ExtendedStatefulContext<P>,
   props: P,
-) => AsyncGenerator<React.ReactElement | Promise<React.ReactElement>, void, unknown>
+) => AsyncGenerator<React.ReactElement, React.ReactElement | void, unknown>
 
 export function extendedAsyncStateful<P>(
   component: ExtendedAsyncStatefulComponent<P>,
@@ -20,29 +21,34 @@ export function extendedAsyncStateful<P>(
       propsRef.current = props
     }, [props])
 
-    async function refresh() {
-      const next = await generated.next()
-      setContent(() => next.value)
-    }
-
-    const context: ExtendedStatefulContext<P> = {
-      refresh,
-      emitAsync(p) {
-        p.then(() => refresh())
-        return p
-      },
-      [Symbol.iterator]: async function* () {
-        yield propsRef.current
-      },
-    }
+    const nextTick = useNextTick()
+    const [context] = React.useState<ExtendedStatefulContext<P>>(() => {
+      async function refresh() {
+        const next = await generated.next()
+        setContent(() => next.value)
+      }
+      return {
+        refresh,
+        emitAsync(p) {
+          p.then(refresh)
+          return p
+        },
+        [Symbol.asyncIterator]: async function* () {
+          while (true) {
+            yield propsRef.current
+            await nextTick()
+          }
+        },
+      }
+    })
     const [generated] = React.useState(() => component.call(context, props))
     const [content, setContent] = React.useState<React.ReactNode>(() => null)
     React.useEffect(() => {
-      refresh()
+      context.refresh()
       return () => {
         generated.return()
       }
-    }, [generated])
+    }, [context, generated])
     return <>{content}</>
   }
 }

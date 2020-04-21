@@ -5,17 +5,13 @@ import { AsyncGeneratorComponent } from '../recrank/asyncGenerator'
 import { sleep } from '../utils'
 
 const LoadingIndicator = fromCrank.async(async function LoadingIndicator() {
-  console.log(`loading indicator`)
   await sleep(1000)
   return <div>Fetching a good boy...</div>
 })
 
-let count = 0
 const $RandomDog: AsyncComponent<{ throttle?: boolean | undefined }> = async function RandomDog({
   throttle = false,
 }): Promise<JSX.Element> {
-  if (count++ > 10) throw new Error(`Random dog over render limitation`)
-
   const res = await fetch('https://dog.ceo/api/breeds/image/random')
   const data = await res.json()
   if (throttle) {
@@ -43,7 +39,6 @@ export const RandomDogApp = fromCrank.stateful(function* RandomDogApp() {
   let throttle = false
 
   while (true) {
-    if (count++ > 10) throw new Error(`Random dog app over render limitation`)
     yield (
       <React.Fragment>
         <div>

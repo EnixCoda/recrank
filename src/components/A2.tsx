@@ -1,45 +1,50 @@
 import * as React from 'react'
 import * as fromCrank from '../recrank'
 import { ExtendedAsyncStatefulComponent } from '../recrank/extendedStateful'
+import { sleep } from '../utils'
 
 /**
- * I changed the way of pulling data in './A'
+ * The timeout in the crank async generator demo does not make sense to me
  */
-
 function LoadingIndicator() {
   return <div>Fetching a good boy...</div>
 }
 
-let count = 0
-const $RandomDogLoader: ExtendedAsyncStatefulComponent<any> = async function* RandomDogLoader() {
-  if (count++ > 10) throw new Error(`Too many counts`)
-  // emit async operations before yielding to not block rendering
-  const res = this.emitAsync(fetch('https://dog.ceo/api/breeds/image/random'))
-  yield <LoadingIndicator />
-  const data = await (await res).json()
-  return (
-    <a href={data.message}>
-      <img src={data.message} alt="A Random Dog" width="300" />
-    </a>
-  )
+const $RandomDogLoader: ExtendedAsyncStatefulComponent<{
+  throttle?: boolean
+}> = async function* RandomDogLoader({ throttle }) {
+  for await ({ throttle } of this) {
+    // emit async operations before yielding to not block rendering
+    const res = this.emitAsync(fetch('https://dog.ceo/api/breeds/image/random'))
+    yield <LoadingIndicator />
+    const data = await (await res).json()
+    if (throttle) {
+      this.emitAsync(sleep(1000))
+      yield <span>sleeping due to throttle</span>
+    }
+    yield (
+      <div>
+        <a href={data.message}>
+          <img src={data.message} alt="A Random Dog" width="300" />
+        </a>
+      </div>
+    )
+  }
 }
 const RandomDogLoader = fromCrank.extendedAsyncStateful($RandomDogLoader)
 
 export const RandomDogApp = fromCrank.stateful(function* RandomDogApp() {
   let throttle = false
 
+  const onClickButton = () => {
+    throttle = !throttle
+    this.refresh()
+  }
   while (true) {
     yield (
       <React.Fragment>
         <div>
-          <button
-            onClick={() => {
-              throttle = !throttle
-              this.refresh()
-            }}
-          >
-            Show me another dog.
-          </button>
+          <button onClick={onClickButton}>Show me another dog.</button>
         </div>
         <RandomDogLoader key={`${throttle}`} throttle={throttle} />
       </React.Fragment>
