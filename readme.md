@@ -19,12 +19,14 @@ async function* RandomDogLoader({ throttle }) {
   for await ({ throttle } of this) {
     // emit async operations before yielding to not block rendering
     const res = this.emitAsync(fetch('https://dog.ceo/api/breeds/image/random'))
-    yield <LoadingIndicator /> // render loading indicator while retrieving async data
-    const data = await (await res).json() // thanks to `emitAsync`, render will continue from here when above fetch is done
-    if (throttle) {
-      this.emitAsync(sleep(1000))
-      yield <span>sleeping due to throttle</span>
-    }
+
+    // render loading indicator while retrieving data
+    yield <LoadingIndicator />
+
+    // thanks to `emitAsync`, render will continue from here when above fetch is done
+    const data = await (await res).json()
+
+    // render with data
     yield (
       <div>
         <a href={data.message}>
