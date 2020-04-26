@@ -9,7 +9,6 @@ import { ComponentType, FC } from "react";
 
 export { async } from "./async";
 export { asyncGenerator } from "./asyncGenerator";
-export { extendedAsyncStateful } from "./extendedStateful";
 export { stateful } from "./stateful";
 
 const recrankMark = Symbol.for("recrank");
