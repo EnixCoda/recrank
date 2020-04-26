@@ -59,5 +59,5 @@ function useNextTickSync() {
 }
 
 // export const useNextTick = MODE === "sync" useNextTickSync : useNextTickAsync;
-// export const useNextTick = useNextTickSync;
-export const useNextTick = useNextTickAsync;
+export const useNextTick = useNextTickSync;
+// export const useNextTick = useNextTickAsync;
