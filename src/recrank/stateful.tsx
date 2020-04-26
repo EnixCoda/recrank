@@ -42,6 +42,7 @@ export function stateful<P>(component: StatefulComponent<P>): RecrankFC<P> {
       );
       return <>{content}</>;
     }),
-    "stateful"
+    "stateful",
+    component.name
   );
 }

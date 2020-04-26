@@ -18,9 +18,14 @@ export type RecrankFC<P> = React.FC<P> & {
   [recrankMark]?: Types;
 };
 
-export function asRecrankFC<P>(fc: FC<P>, type: Types): RecrankFC<P> {
+export function asRecrankFC<P>(
+  fc: FC<P>,
+  type: Types,
+  name: string
+): RecrankFC<P> {
   Object.assign(fc, {
     [recrankMark]: type,
+    displayName: name,
   });
   return fc;
 }
